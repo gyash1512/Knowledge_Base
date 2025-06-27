@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  mindsdb:
+    image: mindsdb/mindsdb
+    ports:
+      - "${MINDSDB_TCP_PORT}:${MINDSDB_TCP_PORT}"
+      - "${MINDSDB_HTTP_PORT}:${MINDSDB_HTTP_PORT}"
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/root/.config/gcloud/application_default_credentials.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
