@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 
 const CreateKnowledgeBase = () => {
   const [kbName, setKbName] = useState('');
-  const [embeddingProvider, setEmbeddingProvider] = useState('gemini');
-  const [embeddingModel, setEmbeddingModel] = useState('text-embedding-3-large');
-  const [embeddingApiKey, setEmbeddingApiKey] = useState('');
+  const [embeddingProvider, setEmbeddingProvider] = useState('vertex_ai');
+  const [embeddingModel, setEmbeddingModel] = useState('gemini-embedding-001');
   const [rerankingProvider, setRerankingProvider] = useState('gemini');
-  const [rerankingModel, setRerankingModel] = useState('gpt-4o');
-  const [rerankingApiKey, setRerankingApiKey] = useState('');
+  const [rerankingModel, setRerankingModel] = useState('gemini-2.0-flash');
   const [metadataColumns, setMetadataColumns] = useState('');
   const [contentColumns, setContentColumns] = useState('');
   const [idColumn, setIdColumn] = useState('');
@@ -24,12 +22,10 @@ const CreateKnowledgeBase = () => {
         embedding_model: {
           provider: embeddingProvider,
           model_name: embeddingModel,
-          api_key: embeddingApiKey,
         },
         reranking_model: {
           provider: rerankingProvider,
           model_name: rerankingModel,
-          api_key: rerankingApiKey,
         },
         metadata_columns: metadataColumns.split(',').map(s => s.trim()),
         content_columns: contentColumns.split(',').map(s => s.trim()),
@@ -37,12 +33,10 @@ const CreateKnowledgeBase = () => {
       }),
     });
     setKbName('');
-    setEmbeddingProvider('gemini');
-    setEmbeddingModel('text-embedding-3-large');
-    setEmbeddingApiKey('');
+    setEmbeddingProvider('vertex_ai');
+    setEmbeddingModel('gemini-embedding-001');
     setRerankingProvider('gemini');
     setRerankingModel('gemini-2.0-flash');
-    setRerankingApiKey('');
     setMetadataColumns('');
     setContentColumns('');
     setIdColumn('');
@@ -84,17 +78,6 @@ const CreateKnowledgeBase = () => {
             required
             className="w-full px-4 py-2 border rounded-lg"
           />
-          <label htmlFor="embedding_api_key" className="block text-lg font-medium mb-2 mt-4">API Key:</label>
-          <input
-            type="password"
-            id="embedding_api_key"
-            value={embeddingApiKey}
-            onChange={(e) => setEmbeddingApiKey(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter your API key"
-          />
-          <p className="text-sm text-gray-500 mt-1">Your API key is required to use this model.</p>
 
           <h2 className="text-2xl font-bold mt-8 mb-4">Reranking Model</h2>
           <label htmlFor="reranking_provider" className="block text-lg font-medium mb-2">Provider:</label>
@@ -115,17 +98,6 @@ const CreateKnowledgeBase = () => {
             required
             className="w-full px-4 py-2 border rounded-lg"
           />
-          <label htmlFor="reranking_api_key" className="block text-lg font-medium mb-2 mt-4">API Key:</label>
-          <input
-            type="password"
-            id="reranking_api_key"
-            value={rerankingApiKey}
-            onChange={(e) => setRerankingApiKey(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter your API key"
-          />
-          <p className="text-sm text-gray-500 mt-1">Your API key is required to use this model.</p>
 
           <h2 className="text-2xl font-bold mt-8 mb-4">Columns</h2>
           <label htmlFor="metadata_columns" className="block text-lg font-medium mb-2">Metadata Columns (comma-separated):</label>

@@ -8,7 +8,7 @@ load_dotenv()
 
 app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 
-MINDSDB_API_URL = f"{os.environ.get('MINDSDB_HOST')}:{os.environ.get('MINDSDB_HTTP_PORT')}/api"
+MINDSDB_API_URL = f"{os.environ.get('MINDSDB_HOST')}:{os.environ.get('MINDSDB_TCP_PORT')}/api"
 MINDSDB_USER = os.environ.get("MINDSDB_USER")
 MINDSDB_PASSWORD = os.environ.get("MINDSDB_PASSWORD")
 FLASK_PORT = os.environ.get("FLASK_PORT")
@@ -54,9 +54,9 @@ def handle_kbs():
             return jsonify({"success": False, "error": "Failed to create Knowledge Base"}), 500
     else:
         query = "SHOW KNOWLEDGE_BASES"
-        results = query_mindsdb(query)
-        if results:
-            kbs = [row[0] for row in results['data']]
+        result = query_mindsdb(query)
+        if result:
+            kbs = [row[0] for row in result.get('data', [])]
             return jsonify(kbs)
         else:
             return jsonify([])
