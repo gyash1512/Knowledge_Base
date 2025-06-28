@@ -112,15 +112,30 @@ def create_job():
     job_name = request.json['job_name']
     kb_name = request.json['kb_name']
     source = request.json['source']
-    schedule = request.json['schedule']
+    schedule = request.json.get('schedule')
+    repeat = request.json['repeat']
     
     query = f"""
     CREATE JOB {job_name} AS (
         INSERT INTO {kb_name}
         SELECT * FROM files.file_url('{source}')
     )
-    EVERY '{schedule}'
     """
+    
+    if schedule:
+        query += f" START '{schedule}'"
+        
+    if repeat:
+        # a more robust solution would parse the schedule string
+        if "h" in repeat:
+            repeat = repeat.replace("h", " hour")
+        elif "d" in repeat:
+            repeat = repeat.replace("d", " day")
+        elif "m" in repeat:
+            repeat = repeat.replace("m", " minute")
+            
+        query += f" EVERY '{repeat}'"
+        
     result = query_mindsdb(query)
     if result:
         return jsonify({"success": True, "data": result})

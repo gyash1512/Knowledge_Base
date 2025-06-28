@@ -5,6 +5,7 @@ const CreateJob = () => {
   const [kbName, setKbName] = useState('');
   const [source, setSource] = useState('');
   const [schedule, setSchedule] = useState('');
+  const [repeat, setRepeat] = useState('1h');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,12 +19,14 @@ const CreateJob = () => {
         kb_name: kbName,
         source: source,
         schedule: schedule,
+        repeat: repeat,
       }),
     });
     setJobName('');
     setKbName('');
     setSource('');
     setSchedule('');
+    setRepeat('1h');
   };
 
   return (
@@ -62,16 +65,26 @@ const CreateJob = () => {
             className="w-full px-4 py-2 border rounded-lg"
             placeholder="e.g., https://example.com/data.txt"
           />
-          <label htmlFor="schedule" className="block text-lg font-medium mb-2 mt-4">Schedule:</label>
+          <label htmlFor="schedule" className="block text-lg font-medium mb-2 mt-4">Start At (optional):</label>
           <input
             type="text"
             id="schedule"
             name="schedule"
             value={schedule}
             onChange={(e) => setSchedule(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg"
+            placeholder="e.g., 2023-01-01 10:00:00"
+          />
+          <label htmlFor="repeat" className="block text-lg font-medium mb-2 mt-4">Repeat:</label>
+          <input
+            type="text"
+            id="repeat"
+            name="repeat"
+            value={repeat}
+            onChange={(e) => setRepeat(e.target.value)}
             required
             className="w-full px-4 py-2 border rounded-lg"
-            placeholder="e.g., 'every 1 hour'"
+            placeholder="e.g., 1h"
           />
           <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Job</button>
         </form>
