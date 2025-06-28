@@ -88,13 +88,20 @@ def query():
     query_str = request.json['query']
     metadata_filter = request.json.get('metadata_filter')
     
-    where_clause = f"content LIKE '{query_str}'"
+    where_clauses = []
+    if query_str:
+        where_clauses.append(f" chunk_content like '{query_str}'")
     if metadata_filter:
-        where_clause += f" AND {metadata_filter}"
+        where_clauses.append(metadata_filter)
+    
+    where_clause = ""
+    if where_clauses:
+        where_clause = "WHERE " + " AND ".join(where_clauses)
 
-    query = f"SELECT * FROM {kb_name} WHERE {where_clause}"
+    query = f"SELECT * FROM {kb_name} {where_clause};"
     results = query_mindsdb(query)
-    if results:
+    print(results)
+    if results and 'data' in results:
         return jsonify(results['data'])
     else:
         return jsonify([])

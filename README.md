@@ -111,7 +111,11 @@ To ingest data into a knowledge base, you need to provide the name of the knowle
 
 ### Query
 
-To query a knowledge base, you need to provide the name of the knowledge base and a search query. You can also filter the results by metadata using a SQL WHERE clause format.
+To query a knowledge base, you can provide a search query, a metadata filter, or both.
+
+*   **Search Query:** This performs a semantic search on the `content` column of your knowledge base. For example, you could search for `"gaming laptop"`.
+*   **Metadata Filter:** This allows you to filter the results based on the metadata you provided during ingestion. The filter should be in a SQL `WHERE` clause format. For example, to find all documents with the product "Laptop", you would enter `product = 'Laptop'`.
+*   **Combined Query:** You can combine a search query and a metadata filter to perform a more specific search. For example, to find all gaming laptops, you could use the search query `"gaming laptop"` and the metadata filter `product = 'Laptop'`.
 
 ### Create Job
 
