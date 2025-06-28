@@ -23,6 +23,8 @@ const Home = () => {
             <li className="mb-2"><Link to="/query-ai-table" className="text-blue-600 hover:underline">Query an AI Table</Link></li>
             <li className="mb-2"><Link to="/create-workflow" className="text-blue-600 hover:underline">Create a Workflow</Link></li>
             <li className="mb-2"><Link to="/query-workflow" className="text-blue-600 hover:underline">Query a Workflow</Link></li>
+            <li className="mb-2"><Link to="/create-agent" className="text-blue-600 hover:underline">Create an Agent</Link></li>
+            <li className="mb-2"><Link to="/query-agent" className="text-blue-600 hover:underline">Query an Agent</Link></li>
           </ul>
         </div>
       </div>

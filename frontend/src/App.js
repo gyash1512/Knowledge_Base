@@ -12,6 +12,8 @@ import CreateAITable from './pages/CreateAITable';
 import QueryAITable from './pages/QueryAITable';
 import CreateWorkflow from './pages/CreateWorkflow';
 import QueryWorkflow from './pages/QueryWorkflow';
+import CreateAgent from './pages/CreateAgent';
+import QueryAgent from './pages/QueryAgent';
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
             <Route path="/query-ai-table" element={<QueryAITable />} />
             <Route path="/create-workflow" element={<CreateWorkflow />} />
             <Route path="/query-workflow" element={<QueryWorkflow />} />
+            <Route path="/create-agent" element={<CreateAgent />} />
+            <Route path="/query-agent" element={<QueryAgent />} />
           </Routes>
         </main>
         <Footer />

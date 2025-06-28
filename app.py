@@ -220,6 +220,44 @@ def create_workflow():
             
     return jsonify({"success": True, "data": f"Workflow '{workflow_name}' created successfully"})
 
+@app.route('/api/agents', methods=['POST'])
+def create_agent():
+    agent_name = request.json['name']
+    model_name = request.json['model_name']
+    include_kbs = request.json.get('include_knowledge_bases', [])
+    include_tables = request.json.get('include_tables', [])
+    prompt_template = request.json.get('prompt_template', '')
+    
+    include_kbs_str = ", ".join([f"'{kb}'" for kb in include_kbs])
+    include_tables_str = ", ".join([f"'{table}'" for table in include_tables])
+    
+    query = f"""
+    CREATE AGENT {agent_name}
+    USING
+        model = '{model_name}',
+        google_api_key = '{os.environ.get("GOOGLE_API_KEY")}',
+        include_knowledge_bases = '{include_kbs[0]}',
+        prompt_template = '{prompt_template}. When asked a question, respond precisely using that context. Question: {{question}} Answer:';
+    """
+    
+    result = query_mindsdb(query)
+    if result:
+        return jsonify({"success": True, "data": result})
+    else:
+        return jsonify({"success": False, "error": "Failed to create agent"}), 500
+
+@app.route('/api/agents/query', methods=['POST'])
+def query_agent():
+    agent_name = request.json['name']
+    question = request.json['question']
+    
+    query = f"SELECT answer FROM {agent_name} WHERE question = '{question}'"
+    result = query_mindsdb(query)
+    if result and 'data' in result:
+        return jsonify(result['data'])
+    else:
+        return jsonify([])
+
 @app.route('/api/workflows/query', methods=['POST'])
 def query_workflow():
     workflow_name = request.form['workflow_name']
@@ -282,6 +320,14 @@ def create_job_page():
 
 @app.route('/create-ai-table')
 def create_ai_table_page():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/create-agent')
+def create_agent_page():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/query-agent')
+def query_agent_page():
     return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/query-workflow')
