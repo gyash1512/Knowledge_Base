@@ -20,6 +20,9 @@ const Home = () => {
           <ul>
             <li className="mb-2"><Link to="/create-job" className="text-blue-600 hover:underline">Create a Job for Automated Ingestion</Link></li>
             <li className="mb-2"><Link to="/create-ai-table" className="text-blue-600 hover:underline">Create an AI Table</Link></li>
+            <li className="mb-2"><Link to="/query-ai-table" className="text-blue-600 hover:underline">Query an AI Table</Link></li>
+            <li className="mb-2"><Link to="/create-workflow" className="text-blue-600 hover:underline">Create a Workflow</Link></li>
+            <li className="mb-2"><Link to="/query-workflow" className="text-blue-600 hover:underline">Query a Workflow</Link></li>
           </ul>
         </div>
       </div>

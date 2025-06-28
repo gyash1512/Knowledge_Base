@@ -100,7 +100,6 @@ def query():
 
     query = f"SELECT * FROM {kb_name} {where_clause};"
     results = query_mindsdb(query)
-    print(results)
     if results and 'data' in results:
         return jsonify(results['data'])
     else:
@@ -145,20 +144,113 @@ def create_job():
 @app.route('/api/ai-tables', methods=['POST'])
 def create_ai_table():
     ai_table_name = request.json['ai_table_name']
-    kb_name = request.json['kb_name']
+    model_name = request.json['model_name']
+    predict = request.json['predict']
+    engine = request.json.get('engine', 'google_gemini')
+    using_args = request.json.get('using', {})
+    
+    using_clause = ""
+    if using_args:
+        for key, value in using_args.items():
+            using_clause += f"            {key} = '{value}',\n"
     
     query = f"""
-    CREATE TABLE {ai_table_name} (
-        SELECT T.content, T.metadata, R.answer 
-        FROM {kb_name} AS T 
-        JOIN models.default_bot_model AS R
-    )
+    CREATE MODEL {ai_table_name}
+    PREDICT {predict}
+    USING
+      engine = '{engine}',
+      model_name = '{model_name}',
+      {using_clause.rstrip(',\n')};
     """
+    
     result = query_mindsdb(query)
     if result:
         return jsonify({"success": True, "data": result})
     else:
         return jsonify({"success": False, "error": "Failed to create AI table"}), 500
+
+@app.route('/api/ai-tables/query', methods=['POST'])
+def query_ai_table():
+    ai_table_name = request.json['ai_table_name']
+    question = request.json['question']
+    
+    query = f"SELECT answer FROM {ai_table_name} WHERE question = '{question}'"
+    result = query_mindsdb(query)
+    if result and 'data' in result:
+        return jsonify(result['data'])
+    else:
+        return jsonify([])
+
+@app.route('/api/workflows', methods=['POST'])
+def create_workflow():
+    workflow_name = request.json['name']
+    models = request.json['models']
+    kb_name = request.json['kb_name']
+    predict = request.json['predict']
+    prompt_template = request.json.get('prompt_template', '{{text}}')
+    
+    # Create the first AI table in the workflow
+    query = f"""
+    CREATE MODEL {workflow_name}_step_1
+    PREDICT {predict}
+    USING
+        engine = 'google_gemini',
+        model_name = '{models[0]}',
+        prompt_template = '{prompt_template}',
+        api_key = '{os.environ.get("GOOGLE_API_KEY")}'
+    """
+    result = query_mindsdb(query)
+    if not result or 'error_message' in result:
+        return jsonify({"success": False, "error": "Failed to create workflow"}), 500
+        
+    # Create the subsequent AI tables in the workflow
+    for i in range(1, len(models)):
+        query = f"""
+        CREATE MODEL {workflow_name}_step_{i+1}
+        PREDICT {predict}
+        USING
+            engine = 'google_gemini',
+            model_name = '{models[i]}',
+            prompt_template = '{{text}}',
+            api_key = '{os.environ.get("GOOGLE_API_KEY")}'
+        """
+        result = query_mindsdb(query)
+        if not result or 'error_message' in result:
+            return jsonify({"success": False, "error": "Failed to create workflow"}), 500
+            
+    return jsonify({"success": True, "data": f"Workflow '{workflow_name}' created successfully"})
+
+@app.route('/api/workflows/query', methods=['POST'])
+def query_workflow():
+    workflow_name = request.form['workflow_name']
+    query_source = request.form['query_source']
+    
+    if query_source == 'text':
+        query_text = request.form['query_text']
+    elif query_source == 'file':
+        file = request.files['query_file']
+        query_text = file.read().decode('utf-8')
+    elif query_source == 'kb':
+        kb_name = request.form['query_kb']
+        query = f"SELECT * FROM {kb_name}"
+        results = query_mindsdb(query)
+        if not results or 'data' not in results:
+            return jsonify({"success": False, "error": "Failed to query knowledge base"}), 500
+        query_text = " ".join([row[2] for row in results['data']])
+        
+    # Execute the workflow
+    current_text = query_text
+    i = 1
+    while True:
+        model_name = f"{workflow_name}_step_{i}"
+        query = f"SELECT answer FROM {model_name} WHERE text = '{current_text}'"
+        result = query_mindsdb(query)
+        if not result or 'error_message' in result:
+            break
+        current_text = result['data'][0][0]
+        i += 1
+        
+    return jsonify([current_text])
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -190,6 +282,10 @@ def create_job_page():
 
 @app.route('/create-ai-table')
 def create_ai_table_page():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/query-workflow')
+def query_workflow_page():
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':

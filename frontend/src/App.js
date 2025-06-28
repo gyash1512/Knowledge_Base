@@ -9,6 +9,9 @@ import IngestData from './pages/IngestData';
 import Query from './pages/Query';
 import CreateJob from './pages/CreateJob';
 import CreateAITable from './pages/CreateAITable';
+import QueryAITable from './pages/QueryAITable';
+import CreateWorkflow from './pages/CreateWorkflow';
+import QueryWorkflow from './pages/QueryWorkflow';
 
 function App() {
   return (
@@ -24,6 +27,9 @@ function App() {
             <Route path="/query" element={<Query />} />
             <Route path="/create-job" element={<CreateJob />} />
             <Route path="/create-ai-table" element={<CreateAITable />} />
+            <Route path="/query-ai-table" element={<QueryAITable />} />
+            <Route path="/create-workflow" element={<CreateWorkflow />} />
+            <Route path="/query-workflow" element={<QueryWorkflow />} />
           </Routes>
         </main>
         <Footer />

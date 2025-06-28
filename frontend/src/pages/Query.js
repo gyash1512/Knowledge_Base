@@ -6,6 +6,20 @@ const Query = () => {
   const [metadataFilter, setMetadataFilter] = useState('');
   const [results, setResults] = useState([]);
 
+  const sendToAITable = async () => {
+    const response = await fetch('/api/ai-tables/workflow', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        results: results,
+      }),
+    });
+    const data = await response.json();
+    alert(data.data);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const response = await fetch('/api/query', {
@@ -76,6 +90,7 @@ const Query = () => {
               </div>
             ))}
           </div>
+          <button onClick={sendToAITable} className="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Send to AI Table</button>
         </div>
       )}
     </div>
