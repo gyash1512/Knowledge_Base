@@ -123,7 +123,15 @@ To create a job, you need to provide a name for the job, the name of the knowled
 
 ### Create AI Table
 
-To create an AI table, you need to provide a name for the table and the name of the knowledge base to use as a source.
+To create an AI table, you need to provide a name for the table, the name of the knowledge base to use as a source, and the name of the model to use.
+
+### Create Workflow
+
+To create a workflow, you need to provide a name for the workflow, the name of the knowledge base to use as a source, the column you want to predict, and a list of models to use in the workflow.
+
+### Query Workflow
+
+To query a workflow, you need to provide the name of the workflow and a query. The query can be provided as text, a file, or from another knowledge base.
 
 ## Project Structure
 
