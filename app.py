@@ -290,6 +290,41 @@ def query_workflow():
         
     return jsonify([current_text])
 
+@app.route('/api/pull-request/summarize', methods=['POST'])
+def summarize_pull_request():
+    url = request.json['url']
+    
+    # Get the diff from the PR URL
+    diff_url = url.replace("github.com", "patch-diff.githubusercontent.com/raw") + ".diff"
+    diff_response = requests.get(diff_url)
+    diff_text = diff_response.text.replace("'", "''")
+    
+    # Create a temporary model for summarization
+    model_name = "pr_summary_model"
+    query = f"""
+    CREATE MODEL {model_name}
+    PREDICT summary
+    USING
+        engine = 'google_gemini',
+        model_name = 'gemini-2.0-flash',
+        google_api_key = '{os.environ.get("GOOGLE_API_KEY")}',
+        prompt_template = 'Summarize the following pull request diff: {{{{diff_text}}}}'
+    """
+    query_mindsdb(query)
+    
+    # Get the summary
+    query = f"SELECT summary FROM {model_name} WHERE text = '{diff_text}'"
+    result = query_mindsdb(query)
+    
+    # Drop the temporary model
+    query = f"DROP MODEL {model_name}"
+    query_mindsdb(query)
+    
+    if result and 'data' in result:
+        return jsonify({"summary": result['data'][0][0]})
+    else:
+        return jsonify({"summary": "Failed to summarize pull request."})
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
@@ -332,6 +367,10 @@ def query_agent_page():
 
 @app.route('/query-workflow')
 def query_workflow_page():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/pull-request')
+def pull_request_page():
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':

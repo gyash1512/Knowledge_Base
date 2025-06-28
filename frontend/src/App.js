@@ -14,6 +14,11 @@ import CreateWorkflow from './pages/CreateWorkflow';
 import QueryWorkflow from './pages/QueryWorkflow';
 import CreateAgent from './pages/CreateAgent';
 import QueryAgent from './pages/QueryAgent';
+import PullRequest from './pages/PullRequest';
+import CodeContext from './pages/CodeContext';
+import ErrorLog from './pages/ErrorLog';
+import TestCoverage from './pages/TestCoverage';
+import DiffCommenting from './pages/DiffCommenting';
 
 function App() {
   return (
@@ -34,6 +39,11 @@ function App() {
             <Route path="/query-workflow" element={<QueryWorkflow />} />
             <Route path="/create-agent" element={<CreateAgent />} />
             <Route path="/query-agent" element={<QueryAgent />} />
+            <Route path="/pull-request" element={<PullRequest />} />
+            <Route path="/code-context" element={<CodeContext />} />
+            <Route path="/error-log" element={<ErrorLog />} />
+            <Route path="/test-coverage" element={<TestCoverage />} />
+            <Route path="/diff-commenting" element={<DiffCommenting />} />
           </Routes>
         </main>
         <Footer />
