@@ -1,6 +1,8 @@
 import os
 import requests
 import json
+import pandas as pd
+from io import StringIO
 from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 
@@ -66,13 +68,19 @@ def ingest():
     kb_name = request.form['kb_name']
     file = request.files['file']
     content = file.read().decode('utf-8')
-    metadata = request.form.get('metadata', '{}')
-    query = f"INSERT INTO {kb_name} (content, metadata) VALUES ('{content}', '{metadata}')"
-    result = query_mindsdb(query)
-    if result:
-        return jsonify({"success": True, "data": result})
-    else:
-        return jsonify({"success": False, "error": "Failed to ingest data"}), 500
+    
+    data = pd.read_csv(StringIO(content))
+    
+    columns = ", ".join(data.columns)
+    
+    for index, row in data.iterrows():
+        values = ", ".join([f"'{str(row[col]).replace("'", "''")}'" if isinstance(row[col], str) else str(row[col]) for col in data.columns])
+        query = f"INSERT INTO {kb_name} ({columns}) VALUES ({values})"
+        result = query_mindsdb(query)
+        if not result or 'error_message' in result:
+            return jsonify({"success": False, "error": "Failed to ingest data"}), 500
+            
+    return jsonify({"success": True, "data": "Data ingested successfully"})
 
 @app.route('/api/query', methods=['POST'])
 def query():
