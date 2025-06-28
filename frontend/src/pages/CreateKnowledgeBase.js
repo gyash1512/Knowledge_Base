@@ -43,89 +43,121 @@ const CreateKnowledgeBase = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-4xl font-bold mb-8">Create Knowledge Base</h1>
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="kb_name" className="block text-lg font-medium mb-2">Knowledge Base Name:</label>
-          <input
-            type="text"
-            id="kb_name"
-            name="kb_name"
-            value={kbName}
-            onChange={(e) => setKbName(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="e.g., my_document_kb"
-          />
+    <div className="space-y-8">
+      <h1 className="text-4xl font-bold text-white">Create Knowledge Base</h1>
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="p-4 bg-gray-900 rounded-lg">
+            <label htmlFor="kb_name" className="block text-lg font-medium text-gray-300">Knowledge Base Name</label>
+            <input
+              type="text"
+              id="kb_name"
+              name="kb_name"
+              value={kbName}
+              onChange={(e) => setKbName(e.target.value)}
+              required
+              className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+              placeholder="e.g., my_document_kb"
+            />
+          </div>
 
-          <h2 className="text-2xl font-bold mt-8 mb-4">Embedding Model</h2>
-          <label htmlFor="embedding_provider" className="block text-lg font-medium mb-2">Provider:</label>
-          <input
-            type="text"
-            id="embedding_provider"
-            value={embeddingProvider}
-            onChange={(e) => setEmbeddingProvider(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-          <label htmlFor="embedding_model" className="block text-lg font-medium mb-2 mt-4">Model Name:</label>
-          <input
-            type="text"
-            id="embedding_model"
-            value={embeddingModel}
-            onChange={(e) => setEmbeddingModel(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-4 bg-gray-900 rounded-lg">
+              <h2 className="text-2xl font-bold text-white mb-4">Embedding Model</h2>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="embedding_provider" className="block text-lg font-medium text-gray-300">Provider</label>
+                  <input
+                    type="text"
+                    id="embedding_provider"
+                    value={embeddingProvider}
+                    onChange={(e) => setEmbeddingProvider(e.target.value)}
+                    required
+                    className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="embedding_model" className="block text-lg font-medium text-gray-300">Model Name</label>
+                  <input
+                    type="text"
+                    id="embedding_model"
+                    value={embeddingModel}
+                    onChange={(e) => setEmbeddingModel(e.target.value)}
+                    required
+                    className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+                  />
+                </div>
+              </div>
+            </div>
 
-          <h2 className="text-2xl font-bold mt-8 mb-4">Reranking Model</h2>
-          <label htmlFor="reranking_provider" className="block text-lg font-medium mb-2">Provider:</label>
-          <input
-            type="text"
-            id="reranking_provider"
-            value={rerankingProvider}
-            onChange={(e) => setRerankingProvider(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-          <label htmlFor="reranking_model" className="block text-lg font-medium mb-2 mt-4">Model Name:</label>
-          <input
-            type="text"
-            id="reranking_model"
-            value={rerankingModel}
-            onChange={(e) => setRerankingModel(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-          />
+            <div className="p-4 bg-gray-900 rounded-lg">
+              <h2 className="text-2xl font-bold text-white mb-4">Reranking Model</h2>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="reranking_provider" className="block text-lg font-medium text-gray-300">Provider</label>
+                  <input
+                    type="text"
+                    id="reranking_provider"
+                    value={rerankingProvider}
+                    onChange={(e) => setRerankingProvider(e.target.value)}
+                    required
+                    className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="reranking_model" className="block text-lg font-medium text-gray-300">Model Name</label>
+                  <input
+                    type="text"
+                    id="reranking_model"
+                    value={rerankingModel}
+                    onChange={(e) => setRerankingModel(e.target.value)}
+                    required
+                    className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <h2 className="text-2xl font-bold mt-8 mb-4">Columns</h2>
-          <label htmlFor="metadata_columns" className="block text-lg font-medium mb-2">Metadata Columns (comma-separated):</label>
-          <input
-            type="text"
-            id="metadata_columns"
-            value={metadataColumns}
-            onChange={(e) => setMetadataColumns(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-          <label htmlFor="content_columns" className="block text-lg font-medium mb-2 mt-4">Content Columns (comma-separated):</label>
-          <input
-            type="text"
-            id="content_columns"
-            value={contentColumns}
-            onChange={(e) => setContentColumns(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-          <label htmlFor="id_column" className="block text-lg font-medium mb-2 mt-4">ID Column:</label>
-          <input
-            type="text"
-            id="id_column"
-            value={idColumn}
-            onChange={(e) => setIdColumn(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
+          <div className="p-4 bg-gray-900 rounded-lg">
+            <h2 className="text-2xl font-bold text-white mb-4">Columns</h2>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="metadata_columns" className="block text-lg font-medium text-gray-300">Metadata Columns (comma-separated)</label>
+                <input
+                  type="text"
+                  id="metadata_columns"
+                  value={metadataColumns}
+                  onChange={(e) => setMetadataColumns(e.target.value)}
+                  className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+                />
+              </div>
+              <div>
+                <label htmlFor="content_columns" className="block text-lg font-medium text-gray-300">Content Columns (comma-separated)</label>
+                <input
+                  type="text"
+                  id="content_columns"
+                  value={contentColumns}
+                  onChange={(e) => setContentColumns(e.target.value)}
+                  className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+                />
+              </div>
+              <div>
+                <label htmlFor="id_column" className="block text-lg font-medium text-gray-300">ID Column</label>
+                <input
+                  type="text"
+                  id="id_column"
+                  value={idColumn}
+                  onChange={(e) => setIdColumn(e.target.value)}
+                  className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+                />
+              </div>
+            </div>
+          </div>
 
-          <button type="submit" className="mt-8 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Knowledge Base</button>
+          <button type="submit" className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Create Knowledge Base
+          </button>
         </form>
       </div>
     </div>

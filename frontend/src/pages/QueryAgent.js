@@ -23,39 +23,45 @@ const QueryAgent = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-4xl font-bold mb-8">Query Agent</h1>
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="agent_name" className="block text-lg font-medium mb-2">Agent Name:</label>
-          <input
-            type="text"
-            id="agent_name"
-            name="agent_name"
-            value={agentName}
-            onChange={(e) => setAgentName(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-          <label htmlFor="question" className="block text-lg font-medium mb-2 mt-4">Question:</label>
-          <input
-            type="text"
-            id="question"
-            name="question"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="e.g., What is the price of the gaming laptop?"
-          />
-          <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Ask</button>
+    <div className="space-y-8">
+      <h1 className="text-4xl font-bold text-white">Query Agent</h1>
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="p-4 bg-gray-900 rounded-lg">
+            <label htmlFor="agent_name" className="block text-lg font-medium text-gray-300">Agent Name</label>
+            <input
+              type="text"
+              id="agent_name"
+              name="agent_name"
+              value={agentName}
+              onChange={(e) => setAgentName(e.target.value)}
+              required
+              className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+            />
+          </div>
+          <div className="p-4 bg-gray-900 rounded-lg">
+            <label htmlFor="question" className="block text-lg font-medium text-gray-300">Question</label>
+            <input
+              type="text"
+              id="question"
+              name="question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              required
+              className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+              placeholder="e.g., What is the price of the gaming laptop?"
+            />
+          </div>
+          <button type="submit" className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Ask
+          </button>
         </form>
       </div>
       {results.length > 0 && (
-        <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-4">Answer</h2>
-          <div className="prose">
-            <ReactMarkdown>{results[0][0]}</ReactMarkdown>
+        <div className="mt-8 bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h2 className="text-2xl font-bold text-white mb-4">Answer</h2>
+          <div className="prose prose-invert">
+            <ReactMarkdown>{results[0][2]}</ReactMarkdown>
           </div>
         </div>
       )}
