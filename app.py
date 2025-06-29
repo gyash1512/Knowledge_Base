@@ -71,17 +71,25 @@ def ingest():
     content = file.read().decode('utf-8')
     
     data = pd.read_csv(StringIO(content))
-    
     columns = ", ".join(data.columns)
     
-    for index, row in data.iterrows():
-        values = ", ".join([f"'{str(row[col]).replace("'", "''")}'" if isinstance(row[col], str) else str(row[col]) for col in data.columns])
-        query = f"INSERT INTO {kb_name} ({columns}) VALUES ({values})"
+    for _, row in data.iterrows():
+        values = []
+        for col in data.columns:
+            val = row[col]
+            if isinstance(val, str):
+                val = val.replace("'", "''").replace('\n', ' ')
+                values.append(f"'{val}'")
+            else:
+                values.append(str(val))
+        values_str = ", ".join(values)
+        query = f"INSERT INTO {kb_name} ({columns}) VALUES ({values_str})"
         result = query_mindsdb(query)
         if not result or 'error_message' in result:
             return jsonify({"success": False, "error": "Failed to ingest data"}), 500
-            
+
     return jsonify({"success": True, "data": "Data ingested successfully"})
+
 
 @app.route('/api/query', methods=['POST'])
 def query():
@@ -149,21 +157,26 @@ def create_ai_table():
     predict = request.json['predict']
     engine = request.json.get('engine', 'google_gemini')
     using_args = request.json.get('using', {})
-    
-    using_clause = ""
-    if using_args:
-        for key, value in using_args.items():
-            using_clause += f"            {key} = '{value}',\n"
-    
-    query = f"""
-    CREATE MODEL {ai_table_name}
-    PREDICT {predict}
-    USING
-      engine = '{engine}',
-      model_name = '{model_name}',
-      {using_clause.rstrip(',\n')};
-    """
-    
+
+    using_lines = []
+    for key, value in using_args.items():
+        using_lines.append(f"  {key} = '{value}'")
+
+    using_clause = ",\n".join(using_lines)
+
+    query = (
+        f"CREATE MODEL {ai_table_name}\n"
+        f"PREDICT {predict}\n"
+        f"USING\n"
+        f"  engine = '{engine}',\n"
+        f"  model_name = '{model_name}'"
+    )
+
+    if using_clause:
+        query += ",\n" + using_clause
+
+    query += ";"
+
     result = query_mindsdb(query)
     if result:
         return jsonify({"success": True, "data": result})

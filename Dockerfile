@@ -8,6 +8,7 @@ RUN npm run build
 
 # Build the Flask backend
 FROM python:3.9-slim
+RUN apt-get update && apt-get install -y git
 WORKDIR /app
 COPY --from=builder /app/build ./frontend/build
 COPY requirements.txt .
