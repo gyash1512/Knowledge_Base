@@ -6,6 +6,7 @@ from io import StringIO
 from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 import git
+import time
 
 load_dotenv()
 
@@ -40,7 +41,8 @@ def handle_kbs():
         metadata_columns = data['metadata_columns']
         content_columns = data['content_columns']
         id_column = data['id_column']
-
+        embedding_model['max_batch_size'] = 1
+        embedding_model['engine'] = 'google_embedding_engine'
         query = f"""
         CREATE KNOWLEDGE_BASE {kb_name}
         USING
@@ -308,6 +310,8 @@ def query_workflow():
 def ingest_repo():
     kb_name = request.json['kb_name']
     repo_url = request.json['repo_url']
+    ignore_folders = request.json.get('ignore_folders', [])
+    ignore_files = request.json.get('ignore_files', [])
     
     # Clone the repo
     repo_name = repo_url.split('/')[-1].replace('.git', '')
@@ -317,26 +321,27 @@ def ingest_repo():
     git.Repo.clone_from(repo_url, repo_path)
     
     # Ingest the files
-    files_to_ingest = []
     for root, dirs, files in os.walk(repo_path):
+        # Exclude ignored folders
+        dirs[:] = [d for d in dirs if d not in ignore_folders]
+        
         for file in files:
+            if file in ignore_files:
+                continue
+
             file_path = os.path.join(root, file)
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
-                files_to_ingest.append({
-                    "file_path": file_path,
-                    "file_name": file,
-                    "content": content.replace("'", "''")
-                })
+                
+                content = content.replace("'", "''")
+                
+                query = f"INSERT INTO {kb_name} (file_path, file_name, content) VALUES ('{file_path}', '{file}', '{content}')"
+                result = query_mindsdb(query)
+                if not result or 'error_message' in result:
+                    print(f"Failed to ingest file {file_path}: {result.get('error_message')}")
             except Exception as e:
                 print(f"Error reading file {file_path}: {e}")
-
-    for file_data in files_to_ingest:
-        query = f"INSERT INTO {kb_name} (file_path, file_name, content) VALUES ('{file_data['file_path']}', '{file_data['file_name']}', '{file_data['content']}')"
-        result = query_mindsdb(query)
-        if not result or 'error_message' in result:
-            print(f"Failed to ingest file {file_data['file_path']}: {result.get('error_message')}")
                 
     return jsonify({"success": True, "data": f"Successfully ingested repository {repo_url} into knowledge base {kb_name}."})
 

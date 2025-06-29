@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 const IngestRepo = () => {
   const [kbName, setKbName] = useState('');
   const [repoUrl, setRepoUrl] = useState('');
+  const [ignoreFolders, setIgnoreFolders] = useState('node_modules,build,dist');
+  const [ignoreFiles, setIgnoreFiles] = useState('package-lock.json,yarn.lock');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,6 +16,8 @@ const IngestRepo = () => {
       body: JSON.stringify({
         kb_name: kbName,
         repo_url: repoUrl,
+        ignore_folders: ignoreFolders.split(',').map(s => s.trim()),
+        ignore_files: ignoreFiles.split(',').map(s => s.trim()),
       }),
     });
     setKbName('');
@@ -46,6 +50,28 @@ const IngestRepo = () => {
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
               required
+              className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+            />
+          </div>
+          <div className="p-4 bg-gray-900 rounded-lg">
+            <label htmlFor="ignore_folders" className="block text-lg font-medium text-gray-300">Ignore Folders (comma-separated)</label>
+            <input
+              type="text"
+              id="ignore_folders"
+              name="ignore_folders"
+              value={ignoreFolders}
+              onChange={(e) => setIgnoreFolders(e.target.value)}
+              className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
+            />
+          </div>
+          <div className="p-4 bg-gray-900 rounded-lg">
+            <label htmlFor="ignore_files" className="block text-lg font-medium text-gray-300">Ignore Files (comma-separated)</label>
+            <input
+              type="text"
+              id="ignore_files"
+              name="ignore_files"
+              value={ignoreFiles}
+              onChange={(e) => setIgnoreFiles(e.target.value)}
               className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm py-3 px-4"
             />
           </div>
