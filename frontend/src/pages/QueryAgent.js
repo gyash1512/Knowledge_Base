@@ -61,7 +61,7 @@ const QueryAgent = () => {
         <div className="mt-8 bg-gray-800 p-8 rounded-lg shadow-lg">
           <h2 className="text-2xl font-bold text-white mb-4">Answer</h2>
           <div className="prose prose-invert">
-            <ReactMarkdown>{results[0][2]}</ReactMarkdown>
+            <ReactMarkdown>{results[0][0]}</ReactMarkdown>
           </div>
         </div>
       )}
