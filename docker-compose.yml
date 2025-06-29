@@ -10,3 +10,17 @@ services:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/root/.config/gcloud/application_default_credentials.json
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+  app:
+    build: .
+    ports:
+      - "${FLASK_PORT}:${FLASK_PORT}"
+    depends_on:
+      - mindsdb
+    environment:
+      - MINDSDB_HOST=http://mindsdb
+      - MINDSDB_TCP_PORT=${MINDSDB_TCP_PORT}
+      - MINDSDB_HTTP_PORT=${MINDSDB_HTTP_PORT}
+      - FLASK_PORT=${FLASK_PORT}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - MINDSDB_USER=${MINDSDB_USER}
+      - MINDSDB_PASSWORD=${MINDSDB_PASSWORD}

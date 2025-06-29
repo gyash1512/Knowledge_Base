@@ -70,6 +70,17 @@ This is a web application for creating, managing, and querying MindsDB Knowledge
 
 ## Running the Application
 
+### With Docker Compose
+
+1.  **Start the application with Docker Compose:**
+    ```bash
+    docker-compose up --build
+    ```
+
+2.  **Access the application** by navigating to `http://localhost:5000` in your web browser.
+
+### Without Docker
+
 1.  **Start the MindsDB Docker container:**
     ```bash
     docker-compose up -d
