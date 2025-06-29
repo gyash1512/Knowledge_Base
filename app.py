@@ -306,34 +306,23 @@ def ingest_repo():
 def summarize_pull_request():
     url = request.json['url']
     
-    # Get the diff from the PR URL
     diff_url = url.replace("github.com", "patch-diff.githubusercontent.com/raw") + ".diff"
     diff_response = requests.get(diff_url)
-    diff_text = diff_response.text.replace("'", "''")
+    diff_text = diff_response.text.replace("'", "''").replace('\n', ' ').replace('\r', '') 
     
-    # Create a temporary model for summarization
     model_name = "pr_summary_model"
     query = f"""
-    CREATE MODEL {model_name}
-    PREDICT summary
-    USING
-        engine = 'google_gemini',
-        model_name = 'gemini-2.0-flash',
-        google_api_key = '{os.environ.get("GOOGLE_API_KEY")}',
-        prompt_template = 'Summarize the following pull request diff: \\'{diff_text}\\'';
+    SELECT summary
+    FROM {model_name}
+    WHERE text = '{diff_text}';
     """
-    query_mindsdb(query)
-    
-    # Get the summary
-    query = f"SELECT summary FROM {model_name} WHERE text = '{diff_text}'"
-    result = query_mindsdb(query)
-    
-    # Drop the temporary model
-    query = f"DROP MODEL {model_name}"
-    query_mindsdb(query)
-    print(result)
-    if result and 'data' in result:
-        return jsonify({"summary": result['data'][0][0]})
+    summary_result = query_mindsdb(query)
+    print(summary_result)
+    if summary_result and summary_result.get('data'):
+        if summary_result['data'] and len(summary_result['data']) > 0 and len(summary_result['data'][0]) > 0:
+            return jsonify({"summary": summary_result['data'][0][0]})
+        else:
+            return jsonify({"summary": "No summary data returned."})
     else:
         return jsonify({"summary": "Failed to summarize pull request."})
 
