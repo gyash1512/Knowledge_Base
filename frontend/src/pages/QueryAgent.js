@@ -19,7 +19,11 @@ const QueryAgent = () => {
       }),
     });
     const data = await response.json();
-    setResults(data);
+    if (Array.isArray(data) && Array.isArray(data[0])) {
+      setResults(data);
+    } else {
+      setResults([[typeof data === 'string' ? data : JSON.stringify(data)]]);
+    }
   };
 
   return (
