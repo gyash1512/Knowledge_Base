@@ -19,6 +19,7 @@ import CodeContext from './pages/CodeContext';
 import ErrorLog from './pages/ErrorLog';
 import TestCoverage from './pages/TestCoverage';
 import DiffCommenting from './pages/DiffCommenting';
+import IngestRepo from './pages/IngestRepo';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
             <Route path="/error-log" element={<ErrorLog />} />
             <Route path="/test-coverage" element={<TestCoverage />} />
             <Route path="/diff-commenting" element={<DiffCommenting />} />
+            <Route path="/ingest-repo" element={<IngestRepo />} />
           </Routes>
         </main>
         <Footer />

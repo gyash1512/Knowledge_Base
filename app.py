@@ -5,6 +5,7 @@ import pandas as pd
 from io import StringIO
 from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
+import git
 
 load_dotenv()
 
@@ -290,6 +291,37 @@ def query_workflow():
         
     return jsonify([current_text])
 
+@app.route('/api/ingest-repo', methods=['POST'])
+def ingest_repo():
+    kb_name = request.json['kb_name']
+    repo_url = request.json['repo_url']
+    
+    # Clone the repo
+    repo_name = repo_url.split('/')[-1].replace('.git', '')
+    repo_path = f"/tmp/{repo_name}"
+    if os.path.exists(repo_path):
+        os.system(f"rm -rf {repo_path}")
+    git.Repo.clone_from(repo_url, repo_path)
+    
+    # Ingest the files
+    for root, dirs, files in os.walk(repo_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+                
+                content = content.replace("'", "''")
+                
+                query = f"INSERT INTO {kb_name} (file_path, file_name, content) VALUES ('{file_path}', '{file}', '{content}')"
+                result = query_mindsdb(query)
+                if not result or 'error_message' in result:
+                    print(f"Failed to ingest file {file_path}: {result.get('error_message')}")
+            except Exception as e:
+                print(f"Error reading file {file_path}: {e}")
+                
+    return jsonify({"success": True, "data": f"Successfully ingested repository {repo_url} into knowledge base {kb_name}."})
+
 @app.route('/api/pull-request/summarize', methods=['POST'])
 def summarize_pull_request():
     url = request.json['url']
@@ -308,7 +340,7 @@ def summarize_pull_request():
         engine = 'google_gemini',
         model_name = 'gemini-2.0-flash',
         google_api_key = '{os.environ.get("GOOGLE_API_KEY")}',
-        prompt_template = 'Summarize the following pull request diff: {{{{diff_text}}}}'
+        prompt_template = 'Summarize the following pull request diff: \\'{diff_text}\\'';
     """
     query_mindsdb(query)
     
@@ -319,7 +351,7 @@ def summarize_pull_request():
     # Drop the temporary model
     query = f"DROP MODEL {model_name}"
     query_mindsdb(query)
-    
+    print(result)
     if result and 'data' in result:
         return jsonify({"summary": result['data'][0][0]})
     else:
@@ -371,6 +403,10 @@ def query_workflow_page():
 
 @app.route('/pull-request')
 def pull_request_page():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/ingest-repo')
+def ingest_repo_page():
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
