@@ -7,29 +7,13 @@ from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 import git
 import time
+from mindsdb_utils import query_mindsdb
 
 load_dotenv()
 
 app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 
-MINDSDB_API_URL = f"{os.environ.get('MINDSDB_HOST')}:{os.environ.get('MINDSDB_TCP_PORT')}/api"
-MINDSDB_USER = os.environ.get("MINDSDB_USER")
-MINDSDB_PASSWORD = os.environ.get("MINDSDB_PASSWORD")
 FLASK_PORT = os.environ.get("FLASK_PORT")
-
-def query_mindsdb(query):
-    headers = {"Content-Type": "application/json"}
-    auth = (MINDSDB_USER, MINDSDB_PASSWORD)
-    data = {"query": query}
-    try:
-        response = requests.post(f"{MINDSDB_API_URL}/sql/query", headers=headers, auth=auth, json=data)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error querying MindsDB: {e}")
-        if e.response:
-            print(e.response.text)
-        return None
 
 @app.route('/api/kbs', methods=['GET', 'POST'])
 def handle_kbs():
@@ -306,44 +290,17 @@ def query_workflow():
         
     return jsonify([current_text])
 
+import subprocess
+
 @app.route('/api/ingest-repo', methods=['POST'])
 def ingest_repo():
     kb_name = request.json['kb_name']
     repo_url = request.json['repo_url']
-    ignore_folders = request.json.get('ignore_folders', [])
-    ignore_files = request.json.get('ignore_files', [])
     
-    # Clone the repo
-    repo_name = repo_url.split('/')[-1].replace('.git', '')
-    repo_path = f"/tmp/{repo_name}"
-    if os.path.exists(repo_path):
-        os.system(f"rm -rf {repo_path}")
-    git.Repo.clone_from(repo_url, repo_path)
+    # Run the ingest_codebase.py script
+    subprocess.run(["python", "ingest_codebase.py", kb_name, repo_url])
     
-    # Ingest the files
-    for root, dirs, files in os.walk(repo_path):
-        # Exclude ignored folders
-        dirs[:] = [d for d in dirs if d not in ignore_folders]
-        
-        for file in files:
-            if file in ignore_files:
-                continue
-
-            file_path = os.path.join(root, file)
-            try:
-                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    content = f.read()
-                
-                content = content.replace("'", "''")
-                
-                query = f"INSERT INTO {kb_name} (file_path, file_name, content) VALUES ('{file_path}', '{file}', '{content}')"
-                result = query_mindsdb(query)
-                if not result or 'error_message' in result:
-                    print(f"Failed to ingest file {file_path}: {result.get('error_message')}")
-            except Exception as e:
-                print(f"Error reading file {file_path}: {e}")
-                
-    return jsonify({"success": True, "data": f"Successfully ingested repository {repo_url} into knowledge base {kb_name}."})
+    return jsonify({"success": True, "data": f"Successfully started ingesting repository {repo_url} into knowledge base {kb_name}."})
 
 @app.route('/api/pull-request/summarize', methods=['POST'])
 def summarize_pull_request():

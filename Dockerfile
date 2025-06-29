@@ -13,5 +13,7 @@ WORKDIR /app
 COPY --from=builder /app/build ./frontend/build
 COPY requirements.txt .
 RUN pip install -r requirements.txt
+RUN pip install "unstructured[md]"
+RUN python -m nltk.downloader punkt punkt_tab averaged_perceptron_tagger_eng
 COPY . .
 CMD ["python", "app.py"]
