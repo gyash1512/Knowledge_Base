@@ -5,29 +5,15 @@ import pandas as pd
 from io import StringIO
 from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
+import git
+import time
+from mindsdb_utils import query_mindsdb
 
 load_dotenv()
 
 app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 
-MINDSDB_API_URL = f"{os.environ.get('MINDSDB_HOST')}:{os.environ.get('MINDSDB_TCP_PORT')}/api"
-MINDSDB_USER = os.environ.get("MINDSDB_USER")
-MINDSDB_PASSWORD = os.environ.get("MINDSDB_PASSWORD")
 FLASK_PORT = os.environ.get("FLASK_PORT")
-
-def query_mindsdb(query):
-    headers = {"Content-Type": "application/json"}
-    auth = (MINDSDB_USER, MINDSDB_PASSWORD)
-    data = {"query": query}
-    try:
-        response = requests.post(f"{MINDSDB_API_URL}/sql/query", headers=headers, auth=auth, json=data)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error querying MindsDB: {e}")
-        if e.response:
-            print(e.response.text)
-        return None
 
 @app.route('/api/kbs', methods=['GET', 'POST'])
 def handle_kbs():
@@ -39,7 +25,8 @@ def handle_kbs():
         metadata_columns = data['metadata_columns']
         content_columns = data['content_columns']
         id_column = data['id_column']
-
+        embedding_model['max_batch_size'] = 1
+        embedding_model['engine'] = 'google_embedding_engine'
         query = f"""
         CREATE KNOWLEDGE_BASE {kb_name}
         USING
@@ -70,17 +57,25 @@ def ingest():
     content = file.read().decode('utf-8')
     
     data = pd.read_csv(StringIO(content))
-    
     columns = ", ".join(data.columns)
     
-    for index, row in data.iterrows():
-        values = ", ".join([f"'{str(row[col]).replace("'", "''")}'" if isinstance(row[col], str) else str(row[col]) for col in data.columns])
-        query = f"INSERT INTO {kb_name} ({columns}) VALUES ({values})"
+    for _, row in data.iterrows():
+        values = []
+        for col in data.columns:
+            val = row[col]
+            if isinstance(val, str):
+                val = val.replace("'", "''").replace('\n', ' ')
+                values.append(f"'{val}'")
+            else:
+                values.append(str(val))
+        values_str = ", ".join(values)
+        query = f"INSERT INTO {kb_name} ({columns}) VALUES ({values_str})"
         result = query_mindsdb(query)
         if not result or 'error_message' in result:
             return jsonify({"success": False, "error": "Failed to ingest data"}), 500
-            
+
     return jsonify({"success": True, "data": "Data ingested successfully"})
+
 
 @app.route('/api/query', methods=['POST'])
 def query():
@@ -148,21 +143,26 @@ def create_ai_table():
     predict = request.json['predict']
     engine = request.json.get('engine', 'google_gemini')
     using_args = request.json.get('using', {})
-    
-    using_clause = ""
-    if using_args:
-        for key, value in using_args.items():
-            using_clause += f"            {key} = '{value}',\n"
-    
-    query = f"""
-    CREATE MODEL {ai_table_name}
-    PREDICT {predict}
-    USING
-      engine = '{engine}',
-      model_name = '{model_name}',
-      {using_clause.rstrip(',\n')};
-    """
-    
+
+    using_lines = []
+    for key, value in using_args.items():
+        using_lines.append(f"  {key} = '{value}'")
+
+    using_clause = ",\n".join(using_lines)
+
+    query = (
+        f"CREATE MODEL {ai_table_name}\n"
+        f"PREDICT {predict}\n"
+        f"USING\n"
+        f"  engine = '{engine}',\n"
+        f"  model_name = '{model_name}'"
+    )
+
+    if using_clause:
+        query += ",\n" + using_clause
+
+    query += ";"
+
     result = query_mindsdb(query)
     if result:
         return jsonify({"success": True, "data": result})
@@ -290,6 +290,53 @@ def query_workflow():
         
     return jsonify([current_text])
 
+import subprocess
+
+@app.route('/api/ingest-repo', methods=['POST'])
+def ingest_repo():
+    kb_name = request.json['kb_name']
+    repo_url = request.json['repo_url']
+    
+    # Run the ingest_codebase.py script
+    subprocess.run(["python", "ingest_codebase.py", kb_name, repo_url])
+    
+    return jsonify({"success": True, "data": f"Successfully started ingesting repository {repo_url} into knowledge base {kb_name}."})
+
+@app.route('/api/pull-request/summarize', methods=['POST'])
+def summarize_pull_request():
+    url = request.json['url']
+    
+    # Get the diff from the PR URL
+    diff_url = url.replace("github.com", "patch-diff.githubusercontent.com/raw") + ".diff"
+    diff_response = requests.get(diff_url)
+    diff_text = diff_response.text.replace("'", "''")
+    
+    # Create a temporary model for summarization
+    model_name = "pr_summary_model"
+    query = f"""
+    CREATE MODEL {model_name}
+    PREDICT summary
+    USING
+        engine = 'google_gemini',
+        model_name = 'gemini-2.0-flash',
+        google_api_key = '{os.environ.get("GOOGLE_API_KEY")}',
+        prompt_template = 'Summarize the following pull request diff: \\'{diff_text}\\'';
+    """
+    query_mindsdb(query)
+    
+    # Get the summary
+    query = f"SELECT summary FROM {model_name} WHERE text = '{diff_text}'"
+    result = query_mindsdb(query)
+    
+    # Drop the temporary model
+    query = f"DROP MODEL {model_name}"
+    query_mindsdb(query)
+    print(result)
+    if result and 'data' in result:
+        return jsonify({"summary": result['data'][0][0]})
+    else:
+        return jsonify({"summary": "Failed to summarize pull request."})
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
@@ -332,6 +379,14 @@ def query_agent_page():
 
 @app.route('/query-workflow')
 def query_workflow_page():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/pull-request')
+def pull_request_page():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/ingest-repo')
+def ingest_repo_page():
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':

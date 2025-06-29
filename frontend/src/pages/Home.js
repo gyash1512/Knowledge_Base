@@ -31,6 +31,7 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <FeatureCard to="/create-kb" icon={<FiDatabase size={24} />} title="Create Knowledge Base" description="Create a new vector database to store your data for semantic search." />
           <FeatureCard to="/ingest" icon={<FiDatabase size={24} />} title="Ingest Data" description="Upload a text file to add its content to a Knowledge Base." />
+          <FeatureCard to="/ingest-repo" icon={<FiDatabase size={24} />} title="Ingest Repository" description="Ingest an entire GitHub repository into a Knowledge Base." />
           <FeatureCard to="/query" icon={<FiDatabase size={24} />} title="Query Knowledge Base" description="Perform a semantic search on your Knowledge Base." />
         </div>
       </div>
