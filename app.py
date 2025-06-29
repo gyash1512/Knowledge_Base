@@ -317,21 +317,26 @@ def ingest_repo():
     git.Repo.clone_from(repo_url, repo_path)
     
     # Ingest the files
+    files_to_ingest = []
     for root, dirs, files in os.walk(repo_path):
         for file in files:
             file_path = os.path.join(root, file)
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
-                
-                content = content.replace("'", "''")
-                
-                query = f"INSERT INTO {kb_name} (file_path, file_name, content) VALUES ('{file_path}', '{file}', '{content}')"
-                result = query_mindsdb(query)
-                if not result or 'error_message' in result:
-                    print(f"Failed to ingest file {file_path}: {result.get('error_message')}")
+                files_to_ingest.append({
+                    "file_path": file_path,
+                    "file_name": file,
+                    "content": content.replace("'", "''")
+                })
             except Exception as e:
                 print(f"Error reading file {file_path}: {e}")
+
+    for file_data in files_to_ingest:
+        query = f"INSERT INTO {kb_name} (file_path, file_name, content) VALUES ('{file_data['file_path']}', '{file_data['file_name']}', '{file_data['content']}')"
+        result = query_mindsdb(query)
+        if not result or 'error_message' in result:
+            print(f"Failed to ingest file {file_data['file_path']}: {result.get('error_message')}")
                 
     return jsonify({"success": True, "data": f"Successfully ingested repository {repo_url} into knowledge base {kb_name}."})
 
